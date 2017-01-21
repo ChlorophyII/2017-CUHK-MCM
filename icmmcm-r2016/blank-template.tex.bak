@@ -104,15 +104,15 @@
   By typing your summary inside a \texttt{summary} environment, \TeX\ will
   handle the formatting of that page correctly, including leaving
   space at the top of the page and not numbering the page.
-
+  
   It will also reset the page numbers so that the first page of your
   report is labeled correctly.
-
+  
   What should you put here?  Basically, you want a brief restatement
   of the problem followed by a largely \emph{non-technical}
   description of what you've done.  Try to avoid using mathematical
   notation.
-
+  
   You probably want to write a few paragraphs, around half to
   two-thirds of a page.
 
@@ -153,7 +153,7 @@
 \end{quotation}
 
 \end{summary}
-
+ 
 %%% End Summary
 %%% ---------------
 
@@ -166,31 +166,31 @@
 %%% Uncomment the following lines by deleting the % sign
 %%% if you have figures or tables in your report:
 % \listoffigures
-% \listoftables
-
+% \listoftables  
+ 
 %%% End Print Title Block, Contents, et al.
 %%% ---------------
 
 \section{Introduction}%
 \label{sec:introduction}
 
-The authors aimed to model the influence on traffic flow of self-driving car percentage, average traffic volume, and the number of lanes. In particular, interaction between vehicles are implemented by a function of motion states, namely the relative distances and relative velocities of adjacent vehicles, as well as their accelerations. Then the model was applied to the data on the roads of interest, before the authors attempted to determine an optimal strategy towards the following objectives:
+The authors intended to model the effect on traffic flow of the percentage of self-driving cars, the average traffic volume, and the number of lanes. In particular, interaction between vehicles are implemented by a function between the relative motion state, namely the relative distance and relative velocity of adjacent vehicles and the acceleration of specific vehicles. Then the model was applied to the data for the roads of interest. Afterwards, the authors attempted to determine an optimal strategy towards the following objectives:
 
 \begin{enumerate}
-\item Guarantee traffic security.
-\item Maximize the total traffic flow.
-\item Avoid sharp change of vehicle velocities.
+\item Make sure of the security of this traffic system
+\item Maximize the total traffic flow 
+\item Avoid sharp change to velocities of vehicles to the greatest extent
 \end{enumerate}
 In this article, the authors decomposed the problem into the following steps when modeling and simulating:
 \begin{enumerate}
 \item Construct the model of traffic flow on a transportation network consisting of xxx xx and xxx.
-\item Use the model to simulate the traffic of given roads of interest, analyze the existence of equilibria and tipping point, then consider possible policy changes of lanes according to the simulation result.
+\item Use the model to  evaluate the traffic state of given roads of interest, analyze the equilibria and tipping point, then analysis the policy changes of lanes according to the simulation result.
 \item Take sensitive cases such as accidents, vibrations of acceleration of vehicles into consideration.
 \end{enumerate}
 \begin{quotation}
   In Section~1 we give our definitions and notation. Section~2
   describes our numerical experiments\ldots{}..
-
+  
   We prove our main result, Theorem~6, in Section~5\ldots{}.
 \end{quotation}
 
@@ -198,8 +198,8 @@ In this article, the authors decomposed the problem into the following steps whe
 
 \section{Basic Assumptions}
 \begin{enumerate}
-\item Self-driving cars can receive the information of xxxxxx, including velocities, positions, and accelerations; drivers can see the motion state of its adjacent cars, the largest visual range is xxx meters
-\item The reaction time of self-driving cars can be ignored, the average reaction time of drivers are set to be 1 second %look for reference!!!!!
+\item Self-driving cars can receive the information of xxxxxx, including velocities, positions, and accelerations; Drivers can see the motion status of its adjacent cars, the largest visual range is xxx meters
+\item The reaction time of self-driving cars can be ignored, the average reaction time of drivers are set to be 1 second
 \item Overtaking is not considered in the basic model
 \item Cellular Automata is adopted to simulate the motion of vehicles
 \item Basic notations in this article are listed as follow in the label:
@@ -207,33 +207,33 @@ In this article, the authors decomposed the problem into the following steps whe
 \centering
 \begin{longtable}{|c|c|c|}
 \hline
-Symbol &Units &Meaning\\
+Symbol &Units &Meaning\\ 
 \hline
-$Vol$ & &Average traffic volume\\
+Vol & &Average traffic volume\\
 \hline
-$P$ & /&Percentage of self-driving cars\\
+P & /&Percentage of self-driving cars\\
 \hline
 $P_{0}$ &/ &Equilibria of percentage that xxx\\
 \hline
-$a_{s}$ & m/s$^{2}$ &Acceleration of self-driving car\\
+$a_{s}$ & m/$s^{2}$ &Acceleration of self-driving car\\
 \hline
-$a_{o}$ &m/s$^{2}$ &Acceleration of ordinary car\\
+$a_{o}$ &m/$s^{2}$ &Acceleration of ordinary car\\
 \hline
-$\Delta$$v_{1}$ &m/s &Velocity of the front car minus the velocity of the objective car\\
+$\Delta$$v_{1}$ &m/s &velocity of the front car minus the velocity of the object car\\
 \hline
-$\Delta$$v_{2}$ &m/s &Velocity of the objective car minus the velocity of the back car\\
+$\Delta$$v_{2}$ &m/s &velocity of the object car minus the velocity of the back car\\
 \hline
-$\Delta$$v_{3}$ &m/s &Speed limit minus the velocity of objective car\\
+$\Delta$$v_{3}$ &m/s &speed limit minus the velocity of object car\\
 \hline
-$d_{1}$ &m &Distance between the front car and the objective car\\
+$d_{1}$ &m &distance between the front car and the object car\\
 \hline
-$d_{2}$ &m &Distance between the objective car and the back car\\
+$d_{2}$ &m &distance between the object car and the back car\\
 \hline
-$x$ & /&\tabincell{c}{A coefficient ranges from -1 to 1 representing the influence\\ on acceleration of the motion status of adjacent cars} \\
+x & /&\tabincell{c}{a coefficient ranges from -1 to 1 representing the influence\\ on acceleration of the motion status of adjacent cars} \\
 \hline
-$Num$ &/ &Number of lanes\\
+Num &/ &Number of lanes\\
 \hline
-$\Delta t$ &s &Reaction time of driver\\
+$\Delta$t &s &Reaction time of driver\\
 \hline
 \caption{Notations}
 
@@ -242,17 +242,17 @@ $\Delta t$ &s &Reaction time of driver\\
 \end{enumerate}
 \subsection{Other Assumptions}
 \begin{enumerate}
-\item In the initial model,
-\item Under the model of cellular automation, each cellular is set to be xxxxxx. More specifically, the
+\item In the initial model, 
+\item Under the model of cellular automation, each cellular is set to be xxxxxx. More specifically, the 
 \end{enumerate}
 
 \section{Analysis of the Problem}
 \subsection{Basic model for motion}
-Firstly, in order to enlarge the traffic capacity, the behavior of each individual vehicle should be analyzed. To do that , the authors gave  initial velocities to vehicles and let the accelerations be  functions of some factors. For each ordinary vehicle(i.e., not self-driving), its instantaneous acceleration is positively correlated to $\Delta$$v_{1}$, $\Delta$$v_{3}$, and $d_{1}$, negatively correlated to $\Delta$$v_{2}$ and $d_{2}$ because the drivers tend to accelerate if the vehicles in the front is running fast or far away, and vice versa for the vehicles behind. Besides, if the velocity is lower than the speed limit, the vehicle tends to accelerate. For simplicity, when modeling acceleration, we introduced a variable x ranging from -1 to 1 which depends linearly on  $\Delta$$v_{1}$,  $d_{1}$, $\Delta$$v_{2}$ and $d_{2}$. By assigning reasonable values to these four independent values and fitting coefficients, we got the following formula:
+Firstly, in order to enlarge the traffic capacity, the transportation under different percentage of self-driving cars should be analyzed.In order to simulate the transportation status, the authors gave an initial velocity to vehicles and constructed an  acceleration function. For each ordinary vehicle, its instantaneous acceleration is positively correlated to $\Delta$$v_{1}$, $\Delta$$v_{3}$, and $d_{1}$, negatively correlated to $\Delta$$v_{2}$ and $d_{2}$ since the drivers tend to accelerate if the vehicles in the front is running fast or far away, and versa for the vehicles behind, besides, if the velocity is lower than the speed limit, the vehicle tends to accelerate. To simplify the relation, we introduce a variable x ranges from -1 to 1 which is of linear relationship to  $\Delta$$v_{1}$,  $d_{1}$, $\Delta$$v_{2}$ and $d_{2}$. By assigning reasonable values to these four independent values and fitting coefficients, we got the following formula:
 \begin{quotation}
  x = 0.0159(s/m)$\Delta$$v_{1}$ + 0.0010($m^{-1}$)$d_{1}$ - 0.0054(s/m)$\Delta$$v_{2}$ - 0.0004($m^{-1}$)$d_{2}$ + 0.0224(s/m)$\Delta$$v_{3}$ - 0.1000
 \end{quotation}
-Obviously, x is positively correlated to acceleration. However, a linear equation is not accurate enough to describe the relation. To make the motion as even as possible, we adopted an "S curve" and by fitting data, we got the following formula:\\
+Obviously, x is positively correlated to acceleration, however, a linear equation is not accurate enough to describe the relation, to make the motion as even as possible, we adapted "S curve". By fitting data, we got the following formula:\\
 \begin{quotation}
 $a_{o}$ = 3($\frac{2}{1 + e^{-4x}}$ - 1) %the unit is m/s^2
 \end{quotation}
@@ -263,10 +263,10 @@ The figure of this function is as follow:\\
 \caption{Acceleration}
 \end{figure}
 \\
-As for self-driving vehicles, since they can detect others' acceleration, if the acceleration of the vehicle ahead changes suddenly, self-driving cars will simultaneously change its acceleration so as to adapt.\\
+As for self-driving vehicles, since they can detect others' acceleration, if the acceleration of the front vehicle changes suddenly, self-driving cars will simultaneously change its acceleration to keep consist with front vehicles.\\
 %formula
 \subsection{Merging and Divergence}
-In reality, the number of lanes in a road is not constant,so sometimes vehicles need to merge into fewer lanes and sometimes diverge to more lanes. We assumed that
+In reality, the number of lanes in a road is not constant, sometimes vehicles need to merge into fewer lanes and sometimes diverge to more lanes. We assumed that 
 \section{Calculating and Simplifying the Model}
 %theory of algorithm (figure)
 \section{Application of the Model}%apply to roads of interest
@@ -277,15 +277,15 @@ In reality, the number of lanes in a road is not constant,so sometimes vehicles 
 \section{Evaluation of the Model}
 \subsection{Strengths}
 \begin{enumerate}
-\item In our model, the
+\item In our model, the 
 \end{enumerate}
 \subsection{Weakness}
 \begin{enumerate}
-\item We set the reaction time to be constant, but actually the reaction time of each driver at different time may vary, which may lead to error.
-\item We used a formula to determine the accelerations of ordinary cars, but in reality, drivers cannot react so accurately, so an uncertain error may occur.
-\item In our model, the accelerations of self-driving vehicles change instantaneously. This may harm smoothness of the system.
-\item Overtaking is not considered in our model. If overtaking is allowed, the accelerations of vehicles will be influenced also by motion of vehicles in adjacent lanes.
-\item In the formula of acceleration, we assumed that accelerations range from -3(m/$s^{2}$) to 3 (m/$s^{2}$), where sharp changes of acceleration are not considered, so this model can't be applied to extreme cases such as collision.
+\item We set the reaction time to be constant, but actually the reaction time of each driver at each time is fluctuant, an error may occur here.
+\item We used a mathematical formula to determine the acceleration of ordinary cars, but in reality, the drivers cannot react so accurately, an uncertain error may occur.
+\item In our model, the acceleration of self-driving vehicles changes sensitively, but this may cause reduction on smoothness during moving.
+\item The case of overtaking is not considered in our model, if overtaking is allowed, the acceleration of vehicles will be also influenced by motion of vehicles in adjacent lanes. 
+\item In the formula of acceleration, we assumed that the acceleration ranges from -3(m/$s^{2}$) to 3 (m/$s^{2}$), sharp changes on acceleration are not considered, so this model can't be applied to sensitive cases such as collision.
 \end{enumerate}
 
 
