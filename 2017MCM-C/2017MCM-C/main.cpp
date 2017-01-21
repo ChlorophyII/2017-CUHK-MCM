@@ -11,16 +11,21 @@
 #include <cmath>
 #include "assert.h"
 #include <ctime>
+#include <chrono>
+#include <thread>
+#include <cstdlib>
+#include <queue>
 
 //Time
 const double DT = 0.1;
-const double END_TIME = 10000.0;
+const double END_TIME = 100.0;
 //Road
 const int NUM_LANE = 4;
 const int ROAD_LENGTH = 1000;
-const int BLOCK_LENGTH = 5;
+const int BLOCK_LENGTH = 4;
 const int NUM_BLOCKS_PER_LANE = ROAD_LENGTH / BLOCK_LENGTH;
-const double LANE_V_LIMIT[5] = {50.0, 40.0, 40.0, 40.0, 40.0};
+const double LANE_V_LIMIT[5] = { 31.29, 26.82, 26.82, 26.82, 26.82 };// In m/s. equivalent to 70 and 60 in mph. Caution!!!Remember to change initial speed
+const double AVG_CAR_PER_SEC = 2.5;
 //Car setting
 const int OBSERVABLE_DIST_FORWARD = 100;
 const int OBSERVABLE_BLOCKS_FORWARD = OBSERVABLE_DIST_FORWARD / BLOCK_LENGTH + 1;
@@ -32,10 +37,11 @@ const int NO_CAR_DIST = 20;
 const int NO_CAR_BLOCK = NO_CAR_DIST / BLOCK_LENGTH;
 const int TRIGGER_DIST = 100;
 const int TRIGGER_BLOCK = TRIGGER_DIST / BLOCK_LENGTH;
-const double COEF[4] = {0.0073, 0.0010, -0.0024, -0.0004};
-    //CAUTION!!! SerialNumber is a global variable
-int SN = 0;
+const double COEF[5] = { 0.0159, 0.0010, -0.005736, -0.0004, 0.0224 };
+const double SELF_RATIO = 0.3;
 
+// Constructor:
+// Car(char type, double a, double v, double s, int lane, int blockPos, int serialNum)
 class Car {
 private:
     char type;                         //self-driving 's' or human-driving 'h'
@@ -135,12 +141,8 @@ public:
     }
     void setBlockPos(Car *road[][NUM_BLOCKS_PER_LANE], int blockPos) {
         int lastBlockPos = preBlockPos[REACTION_TIME-1];
-//        printf("blockPos:%d  lastBlockPos:%d\n",blockPos,lastBlockPos);
-//        printf("cond1:%d  cond2:%d  cond3:%d\n",(lastBlockPos != blockPos),(road[lane][lastBlockPos] != NULL),(road[lane][lastBlockPos]->getSerialNum() == serialNum));
         if ((lastBlockPos != blockPos) && (road[lane][lastBlockPos] != NULL) && (road[lane][lastBlockPos]->getSerialNum() == serialNum)) {
             road[lane][lastBlockPos] = NULL;
-//            printf("LINE 138: buffer[lane] = NULL excuted\n");
-//            printf("lane:%d  lastBlockPos:%d  set as NULL\n",lane,lastBlockPos);
         }
         for (int preTime = REACTION_TIME - 1; preTime >= 1 ; preTime--) {
             this->preBlockPos[preTime] = this->preBlockPos[preTime-1]; //NOTE!!!
@@ -148,12 +150,11 @@ public:
         this->preBlockPos[0] = this->blockPos;
         this->blockPos = blockPos;
     }
-    void updVSBlockPos(Car *road[][NUM_BLOCKS_PER_LANE]) {//TODO change pre attributes
+    void updVSBlockPos(Car *road[][NUM_BLOCKS_PER_LANE]) {
         //this method should be called only after new acceleration is set
         setV(std::max(std::min(v + a * DT, LANE_V_LIMIT[lane]), 0.0));
         setS(s + ((v + preV[0]) / 2.0) * DT);
         setBlockPos(road, std::min(((int)s)/BLOCK_LENGTH, NUM_BLOCKS_PER_LANE - 1));
-//        printf("a:%f  v:%f  s:%f  lane:%d  blockPos:%d  SN:%d\n", a, v, s, lane, blockPos, serialNum);
     }
     Car *frontCar(Car *road[NUM_LANE][NUM_BLOCKS_PER_LANE]) {
         if (type == 's') {   //self-driving car
@@ -200,11 +201,26 @@ public:
     }
 };
 
+
+//******************************   CAUTION!!!   ******************************
+// The followings are global variables!!!
+int SN = 0;                         //serial number
+double t = 0.0;                     //time
+std::queue<Car *> queueSelf;       //queue of self-driving car
+std::queue<Car *> queueHuman;      //queue of human-driving car
+double carNumber = 0.0;
+//******************************   CAUTION!!!   ******************************
+
+//TODO lane need to be re-assigned when putting the car on the road
+
 void move(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE], int lane, int blockPos);
 void moveSelfCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE], int lane, int blockPos);
 void moveHumanCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE], int lane, int blockPos);
+void addCarInQueue();
 void runDT(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE]);
 void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter);
+
+
 
 int main() {
     Car *road[NUM_LANE][NUM_BLOCKS_PER_LANE];
@@ -217,17 +233,16 @@ int main() {
     for (int lane = 0; lane < NUM_LANE; lane++) {
         buffer[lane] = NULL;
     }
-//    printRoad(road, 'v');
+
     std::clock_t start = clock();
-    for (double t = 0.0; t < END_TIME; t += DT) {
+    for (; t < END_TIME; t += DT) {
 //        printf("t=%f\n", t);
         runDT(road, buffer);
     }
-    printRoad(road, 's');
+//    printRoad(road, 'e');
     std::cout << (clock() - start)/(double)CLOCKS_PER_SEC << "s consumed\n";
     return 0;
 }
-
 
 void move(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE], int lane, int blockPos) {
     if (road[lane][blockPos]->getType() == 's') {
@@ -236,13 +251,12 @@ void move(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE], in
         moveHumanCar(road, buffer, lane, blockPos);
     }
 }
-
 void moveSelfCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE], int lane, int blockPos) {
     Car *thisCar = road[lane][blockPos];
     Car *frontCar = thisCar->frontCar(road);
     Car *backCar = thisCar->backCar(road);
 
-    double x = 0;
+    double x = -0.1;
     if (frontCar != NULL) {
         x += COEF[0] * (frontCar->getPreV(REACTION_TIME-1) - thisCar->getV());
         x += COEF[1] * (frontCar->getPreS(REACTION_TIME-1) - thisCar->getS());
@@ -251,7 +265,7 @@ void moveSelfCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LA
         x += COEF[2] * (thisCar->getPreV(REACTION_TIME-1) - backCar->getV());
         x += COEF[3] * (thisCar->getPreS(REACTION_TIME-1) - backCar->getS());
     }
-    double a = 6.0 / (1+exp(-4.0*pow(x, 7.0))) - 3.0;       //new acceleration
+    double a = 6.0 / (1+exp(-4.0*pow(x, 1.0))) - 3.0;       //new acceleration
 
     if (frontCar != NULL) {
         a += frontCar->getA()-frontCar->getPreA(0);
@@ -280,7 +294,7 @@ void moveHumanCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_L
     Car *frontCar = thisCar->frontCar(road);
     Car *backCar = thisCar->backCar(road);
 
-    double x = 0;
+    double x = -0.1;
     if (frontCar != NULL) {
         x += COEF[0] * (frontCar->getPreV(REACTION_TIME-1) - thisCar->getV());
         x += COEF[1] * (frontCar->getPreS(REACTION_TIME-1) - thisCar->getS());
@@ -289,7 +303,7 @@ void moveHumanCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_L
         x += COEF[2] * (thisCar->getPreV(REACTION_TIME-1) - backCar->getV());
         x += COEF[3] * (thisCar->getPreS(REACTION_TIME-1) - backCar->getS());
     }
-    double a = 6.0 / (1+exp(-4.0*pow(x, 7.0))) - 3.0;       //new acceleration
+    double a = 6.0 / (1+exp(-4.0*pow(x, 1.0))) - 3.0;       //new acceleration
 
     thisCar->setA(a);
     thisCar->updVSBlockPos(road);
@@ -311,32 +325,112 @@ void moveHumanCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_L
     road[lane][thisCar->getBlockPos()] = thisCar;
 }
 
+void addCarInQueue() {
+    carNumber += DT * AVG_CAR_PER_SEC;
+    if (carNumber > 1.0) {
+        carNumber -= 1.0;
+        if (rand() < RAND_MAX * SELF_RATIO) {
+            //create a self-driving car
+            Car *thisCar = new Car('s', 0, 23 + rand() % 5, 0, 0, 0, SN++);
+            queueSelf.push(thisCar);
+        } else {
+            //create a human-driving car
+            Car *thisCar = new Car('h', 0, 20 + rand() % 4, 0, 0, 0, SN++);
+            queueHuman.push(thisCar);
+        }
+    }
+}
+
 void runDT(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE]) {
     for (int blockPos = NUM_BLOCKS_PER_LANE - 1; blockPos >= 0; blockPos--) {
         for (int lane = 0; lane < NUM_LANE; lane++) {
-            if (road[lane][blockPos] != NULL) {
+            if ((road[lane][blockPos] != NULL) &&
+				(road[lane][blockPos]->getBlockPos() == blockPos)) {
                 move(road, buffer, lane, blockPos);
             }
         }
     }
-    for (int lane = 0; lane < NUM_LANE; lane++) {
-        int nearestCarBlock = TRIGGER_BLOCK;
-        for (int blockPos = TRIGGER_BLOCK - 1; blockPos >= 0; blockPos--) {
-            if (road[lane][blockPos] != NULL) {
-                nearestCarBlock = blockPos;
-            }
-        }
-        double probStartACar = (double(nearestCarBlock - NO_CAR_BLOCK))/(TRIGGER_DIST - NO_CAR_BLOCK);
-//        probStartACar = 0.5;
-        if (rand() < RAND_MAX * probStartACar) {
-                Car *newCar = new Car('h', 0, 25.0 + (rand() % 10), 0.1, lane, 0, SN++);
-                road[lane][0] = newCar;
-            }
-    }
+//    for (int lane = 0; lane < NUM_LANE; lane++) {
+//        int nearestCarBlock = TRIGGER_BLOCK;
+//        for (int blockPos = TRIGGER_BLOCK - 1; blockPos >= 0; blockPos--) {
+//            if (road[lane][blockPos] != NULL) {
+//                nearestCarBlock = blockPos;
+//            }
+//        }
+//        double probStartACar = (double(nearestCarBlock - NO_CAR_BLOCK))/(TRIGGER_DIST - NO_CAR_BLOCK);
+////        probStartACar = 0.5;
+//        if (rand() < RAND_MAX * probStartACar) {
+//                Car *newCar = new Car('h', 0, 25.0 + (rand() % 10), 0.1, lane, 0, SN++);
+//                road[lane][0] = newCar;
+//            }
+//    }
+    
+    printRoad(road, 'e');
 }
 
 void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter) {
     switch (parameter) {
+        case 'e': {
+            for (int blockPos = 0; blockPos < 30; blockPos++) {
+                printf("%5d ", blockPos);
+                for (int lane = 0; lane < NUM_LANE; lane++) {
+                    if ((road[lane][blockPos] == NULL) ||
+                        (road[lane][blockPos]->getBlockPos() != blockPos)) {
+                        printf("   ");
+                    } else {
+                        switch (road[lane][blockPos]->getSerialNum() % 10) {
+                            case 0: {
+                                printf("🚗 ");
+                            }
+                            break;
+                            case 1: {
+                                printf("🚕 ");
+                            }
+                            break;
+                            case 2: {
+                                printf("🛩 ");
+                            }
+                            break;
+                            case 3: {
+                                printf("🚲 ");
+                            }
+                            break;
+                            case 4: {
+                                printf("🛴 ");
+                            }
+                            break;
+                            case 5: {
+                                printf("🚔 ");
+                            }
+                            break;
+                            case 6: {
+                                printf("🏎 ");
+                            }
+                            break;
+                            case 7: {
+                                printf("🚜 ");
+                            }
+                                break;
+                            case 8: {
+                                printf("🚀 ");
+                            }
+                                break;
+                            case 9: {
+                                printf("🚙 ");
+                            }
+                                break;
+
+                        }
+                    }
+                }
+                printf("\n");
+            }
+            using namespace std::this_thread;
+            using namespace std::chrono;
+            sleep_for(nanoseconds(100000000));
+            std::cout << "\x1B[2J\x1B[H";
+            break;
+        }
         case 't': {
             for (int blockPos = 0; blockPos < NUM_BLOCKS_PER_LANE; blockPos++) {
                 printf("%5d ", blockPos);
