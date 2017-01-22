@@ -198,8 +198,9 @@ In this article, the authors decomposed the problem into the following steps whe
 
 \section{Basic Assumptions}
 \begin{enumerate}
-\item Self-driving cars can receive the information of xxxxxx, including velocities, positions, and accelerations; drivers can see the motion state of its adjacent cars, the largest visual range is xxx meters
-\item The reaction time of self-driving cars can be ignored, the average reaction time of drivers are set to be 1 second %look for reference!!!!!
+\item Homogeneity of cars: each car is modeled by a point in a cell.Ignore details, such as size.
+\item Information detection and cooperation:with some detecting devices a self-driving car can detect the positions, velocities and accelerations of cars nearby instantaneously. By sharing of such information all self-driving cars can detect traffic information in a very large area. %Self-driving cars can receive the information of xxxxxx, including velocities, positions, and accelerations; drivers can see the motion state of its adjacent cars, the largest visual range is xxx meters
+\item Reaction time: the reaction time of self-driving cars is negligible, while the average reaction time of drivers is set to be 1 second %look for reference!!!!!
 \item Overtaking is not considered in the basic model
 \item Cellular Automata is adopted to simulate the motion of vehicles
 \item Basic notations in this article are listed as follow in the label:
