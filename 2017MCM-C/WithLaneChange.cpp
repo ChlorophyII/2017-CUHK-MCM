@@ -480,16 +480,16 @@ int humnLaneShift(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, doub
 	Car pseudoCarRight = *(road[lane][blockPos]);
 	pseudoCarRight.setLane(pseudoCarRight.getLane() + 1);
 	if (road[lane][blockPos]->fronCar(road) != NULL){        //Guaranteeing existence of current frontcar
-		if (canChangeToThisLane(road, lane - 1, blockPos) &&//Guaranteeing existence of left lane
-			((pseudoCarLeft.fronCar(road) != NULL) &&
-			((pseudoCarLeft.fronCar(road))->getS() - road[lane][blockPos]->fronCar(road)->getS()> DELTA_S_VALVE_FOR_LANE_CHANGING) ||//Check left lane fronCar and current lane fronCar
-			(pseudoCarLeft.fronCar(road) == NULL)))
+		if (canChangeToThisLane(road, lane - 1, blockPos) &&
+                (((pseudoCarLeft.fronCar(road) != NULL) &&
+                        ((pseudoCarLeft.fronCar(road))->getPreS(0) - road[lane][blockPos]->fronCar(road)->getPreS(0) > DELTA_S_VALVE_FOR_LANE_CHANGING)) ||
+                 (pseudoCarLeft.fronCar(road) == NULL)))
 		{
 			//a[0] >= a[1] + A_VALVE &&
-			if (canChangeToThisLane(road, lane + 1, blockPos) &&//Guaranteeing existence of left lane
-				((pseudoCarRight.fronCar(road) != NULL) &&
-				((pseudoCarRight.fronCar(road))->getS() - road[lane][blockPos]->fronCar(road)->getS()> DELTA_S_VALVE_FOR_LANE_CHANGING) ||//Check left lane fronCar and current lane fronCar
-				(pseudoCarRight.fronCar(road) == NULL))) {
+            if (canChangeToThisLane(road, lane + 1, blockPos) &&
+                (((pseudoCarRight.fronCar(road) != NULL) &&
+                  ((pseudoCarLeft.fronCar(road))->getPreS(0) - road[lane][blockPos]->fronCar(road)->getPreS(0) > DELTA_S_VALVE_FOR_LANE_CHANGING)) ||
+                 (pseudoCarLeft.fronCar(road) == NULL))) {
 				//a[2] >= a[1] + A_VALVE &&
 				if (rand() % 2 == 0) {
 					return -1;
@@ -502,10 +502,10 @@ int humnLaneShift(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, doub
 				return -1;
 			}
 		}
-		else if (canChangeToThisLane(road, lane + 1, blockPos) &&//Guaranteeing existence of left lane
-			((pseudoCarRight.fronCar(road) != NULL) &&
-			((pseudoCarRight.fronCar(road))->getS() - road[lane][blockPos]->fronCar(road)->getS()> DELTA_S_VALVE_FOR_LANE_CHANGING) ||//Check left lane fronCar and current lane fronCar
-			(pseudoCarRight.fronCar(road) == NULL))) {
+        else if (canChangeToThisLane(road, lane + 1, blockPos) &&
+                 (((pseudoCarRight.fronCar(road) != NULL) &&
+                   ((pseudoCarLeft.fronCar(road))->getPreS(0) - road[lane][blockPos]->fronCar(road)->getPreS(0) > DELTA_S_VALVE_FOR_LANE_CHANGING)) ||
+                  (pseudoCarLeft.fronCar(road) == NULL))) {
 			//a[2] >= a[1] + A_VALVE &&
 			return 1;
 		}
