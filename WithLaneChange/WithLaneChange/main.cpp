@@ -41,6 +41,8 @@ const int NO_CAR_DIST = 15;
 const int NO_CAR_BLOCK = NO_CAR_DIST / BLOCK_LENGTH;
 const int TRIGGER_DIST = 30;
 const int TRIGGER_BLOCK = TRIGGER_DIST / BLOCK_LENGTH;
+const int LANE_CHANGE_RESTRICT_DIST = 100;
+const int LANE_CHANGE_RESTRICT_BLOCK = LANE_CHANGE_RESTRICT_DIST / BLOCK_LENGTH;
 const double COEF[5] = { 0.0159, 0.0010, -0.005736, -0.0004, 0.0224 };
 const double A_COEF[4] = { 0.19, -0.15, -0.12, 70 };
 const double A_LIMIT = 5;
@@ -48,9 +50,9 @@ const double A_VALVE = 0.5;
 const double SELF_RATIO = 0.59;
 const double DELTA_S_VALVE_FOR_LANE_CHANGING = 55;
 //Print function
-const bool CAR_WATERFALL = false;
-const char PRINT_TYPE = 'e'; //'e' emoji, 'a' acceleration, 'v' velocity, 's' position
-const double REFRESH_FREQ = 0.1; // s
+const bool CAR_WATERFALL = true;
+const char PRINT_TYPE = 't'; //'e' emoji, 'a' acceleration, 'v' velocity, 's' position
+const double REFRESH_FREQ = 0.05; // s
 const int REFRESH_NANO_SEC = REFRESH_FREQ * 1000000000;
 const int START_BLOCK = 0;
 const int END_BLOCK = 40;
@@ -273,7 +275,7 @@ int main() {
         //        printf("t=%f\n", t);
         runDT(road, buffer);
     }
-        printRoad(road, 'v');
+//        printRoad(road, 't');
     std::cout << (clock() - start) / (double)CLOCKS_PER_SEC << "s consumed\n";
     printf("%d\n", SN);
     return 0;
@@ -475,6 +477,9 @@ double selfCarAcc(Car *road[][NUM_BLOCKS_PER_LANE], Car *thisCar, int lane, int 
 
 //TODO!!!!!!
 int humnLaneShift(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, double a[3]) {
+    if (blockPos < LANE_CHANGE_RESTRICT_BLOCK) {
+        return 0;
+    }
     Car pseudoCarLeft = *(road[lane][blockPos]);
     pseudoCarLeft.setLane(pseudoCarLeft.getLane() - 1);
     Car pseudoCarRight = *(road[lane][blockPos]);
@@ -542,6 +547,9 @@ int humnLaneShift(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, doub
 	return 0;
  }*/
 int selfLaneShift(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, double a[2]) {
+    if (blockPos < LANE_CHANGE_RESTRICT_BLOCK) {
+        return 0;
+    }
     if (a[0] >= a[1] + A_VALVE) {
         // && canChangeToThisLane(road, lane-1, blockPos)
         // This condition is temporarily commented.
@@ -565,9 +573,9 @@ void addCarInQueue() {
             queueHumn.push(thisCar);
         }
     }
-    int a = (int)queueHumn.size();
-    int b = (int)queueSelf.size();
-    //    printf("humn size:%3d self size:%3d\n", a, b);
+//    int a = (int)queueHumn.size();
+//    int b = (int)queueSelf.size();
+//    printf("humn size:%3d self size:%3d\n", a, b);
 }
 
 void runDT(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE]) {
@@ -732,6 +740,9 @@ void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter) {
                 printf("\n");
             }
             if (CAR_WATERFALL) {
+                int a = (int)queueHumn.size();
+                int b = (int)queueSelf.size();
+                printf("humn size:%3d self size:%3d\n", a, b);
                 sleep_for(nanoseconds(REFRESH_NANO_SEC));
                 std::cout << "\x1B[2J\x1B[H";
             }
@@ -752,6 +763,9 @@ void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter) {
                 printf("\n");
             }
             if (CAR_WATERFALL) {
+                int a = (int)queueHumn.size();
+                int b = (int)queueSelf.size();
+                printf("humn size:%3d self size:%3d\n", a, b);
                 sleep_for(nanoseconds(REFRESH_NANO_SEC));
                 std::cout << "\x1B[2J\x1B[H";
             }
@@ -772,6 +786,9 @@ void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter) {
                 printf("\n");
             }
             if (CAR_WATERFALL) {
+                int a = (int)queueHumn.size();
+                int b = (int)queueSelf.size();
+                printf("humn size:%3d self size:%3d\n", a, b);
                 sleep_for(nanoseconds(REFRESH_NANO_SEC));
                 std::cout << "\x1B[2J\x1B[H";
             }
@@ -792,6 +809,9 @@ void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter) {
                 printf("\n");
             }
             if (CAR_WATERFALL) {
+                int a = (int)queueHumn.size();
+                int b = (int)queueSelf.size();
+                printf("humn size:%3d self size:%3d\n", a, b);
                 sleep_for(nanoseconds(REFRESH_NANO_SEC));
                 std::cout << "\x1B[2J\x1B[H";
             }
@@ -812,6 +832,9 @@ void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter) {
                 printf("\n");
             }
             if (CAR_WATERFALL) {
+                int a = (int)queueHumn.size();
+                int b = (int)queueSelf.size();
+                printf("humn size:%3d self size:%3d\n", a, b);
                 sleep_for(nanoseconds(REFRESH_NANO_SEC));
                 std::cout << "\x1B[2J\x1B[H";
             }
