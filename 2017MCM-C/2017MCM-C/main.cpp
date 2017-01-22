@@ -333,11 +333,11 @@ void moveHumanCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_L
         a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
     } else {
         double x = -0.1;
-        x += COEF[0] * (frontCar->getPreV(0) - thisCar->getV());
-        x += COEF[1] * (frontCar->getPreS(0) - thisCar->getS());
+        x += COEF[0] * (frontCar->getPreV(REACTION_TIME-1) - thisCar->getV());
+        x += COEF[1] * (frontCar->getPreS(REACTION_TIME-1) - thisCar->getS());
         if (backCar != NULL) {
-            x += COEF[2] * (thisCar->getV() - backCar->getPreV(0));
-            x += COEF[3] * (thisCar->getS() - backCar->getPreS(0));
+            x += COEF[2] * (thisCar->getV() - backCar->getPreV(REACTION_TIME-1));
+            x += COEF[3] * (thisCar->getS() - backCar->getPreS(REACTION_TIME-1));
         }
         a = 6.0 / (1+exp(-4.0*pow(x, 1.0))) - 3.0;
         a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
