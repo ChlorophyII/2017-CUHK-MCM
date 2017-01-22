@@ -246,6 +246,7 @@
 				11259EC41E3296DB00E444DC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
