@@ -18,12 +18,12 @@
 
 //Time
 const double DT = 0.1;
-const double END_TIME = 100.0;
+const double END_TIME = 1000.0;
 //Road
 const int NUM_LANE = 4;
 const int NUM_LANE_SELF = 1;
 const int ROAD_LENGTH = 1000;
-const int BLOCK_LENGTH = 4;
+const int BLOCK_LENGTH = 5;
 const int NUM_BLOCKS_PER_LANE = ROAD_LENGTH / BLOCK_LENGTH;
 const double LANE_V_LIMIT[5] = { 31.29, 26.82, 26.82, 26.82, 26.82 };
 // In m/s. equivalent to 70 and 60 in mph.
@@ -35,21 +35,24 @@ const int OBSERVABLE_BLOCKS_FORWARD = OBSERVABLE_DIST_FORWARD / BLOCK_LENGTH + 1
 //Caution!!! OBSERVABLE_BLOCKS_FORWARD may exceeds the actual observable range!!!
 const int OBSERVABLE_DIST_BACKWARD = 50;
 const int OBSERVABLE_BLOCKS_BACKWARD = OBSERVABLE_DIST_BACKWARD / BLOCK_LENGTH + 1;
+const int SAFE_DIST = 30;
 const int REACTION_TIME = 15; // 0.1s
+const double A_LIMIT = 5;
 const int NO_CAR_DIST = 15;
 const int NO_CAR_BLOCK = NO_CAR_DIST / BLOCK_LENGTH;
 const int TRIGGER_DIST = 30;
 const int TRIGGER_BLOCK = TRIGGER_DIST / BLOCK_LENGTH;
-const double COEF[5] = { 0.0159, 0.0010, -0.005736, -0.0004, 0.0224 };
-const double SELF_RATIO = 0.3;
+const double COEF[5] = { 0.0159, 0.0010, -0.005736, -0.0004, 0.0224};
+const double A_COEF[4] = {0.19, -0.15, -0.12, 70};
+const double SELF_RATIO = 0.59;
 
 //Print function
-const bool CAR_WATERFALL = true;
+const bool CAR_WATERFALL = false;
 const char PRINT_TYPE = 'e'; //'e' emoji, 'a' acceleration, 'v' velocity, 's' position
 const double REFRESH_FREQ = 0.1; // s
 const int REFRESH_NANO_SEC = REFRESH_FREQ * 1000000000;
 const int START_BLOCK = 0;
-const int END_BLOCK = 31;
+const int END_BLOCK = 200;
 // Constructor:
 // Car(char type, double a, double v, double s, int lane, int blockPos, int serialNum)
 class Car {
@@ -273,20 +276,27 @@ void moveSelfCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LA
     Car *thisCar = road[lane][blockPos];
     Car *frontCar = thisCar->frontCar(road);
     Car *backCar = thisCar->backCar(road);
-    
-    double x = -0.1;
-    if (frontCar != NULL) {
-        x += COEF[0] * (frontCar->getPreV(REACTION_TIME-1) - thisCar->getV());
-        x += COEF[1] * (frontCar->getPreS(REACTION_TIME-1) - thisCar->getS());
-    }
-    if (backCar != NULL) {
-        x += COEF[2] * (thisCar->getPreV(REACTION_TIME-1) - backCar->getV());
-        x += COEF[3] * (thisCar->getPreS(REACTION_TIME-1) - backCar->getS());
-    }
-    double a = 6.0 / (1+exp(-4.0*pow(x, 1.0))) - 3.0;       //new acceleration
-    
-    if (frontCar != NULL) {
-        a += frontCar->getA()-frontCar->getPreA(0);
+    double a;
+    if (frontCar == NULL) {
+        a = A_COEF[0] * (LANE_V_LIMIT[lane] - thisCar->getV());
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
+    } else if (frontCar->getS() - thisCar->getS() < SAFE_DIST) {
+        a = A_COEF[1] * (A_COEF[3] - (frontCar->getS() - thisCar->getS()));
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
+    } else if ((backCar != NULL) &&
+               (thisCar->getS() - backCar->getS() < SAFE_DIST)) {
+        a = A_COEF[2] * (A_COEF[3] - thisCar->getS() - backCar->getS());
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
+    } else {
+        double x = -0.1;
+        x += COEF[0] * (frontCar->getPreV(0) - thisCar->getV());
+        x += COEF[1] * (frontCar->getPreS(0) - thisCar->getS());
+        if (backCar != NULL) {
+            x += COEF[2] * (thisCar->getV() - backCar->getPreV(0));
+            x += COEF[3] * (thisCar->getS() - backCar->getPreS(0));
+        }
+        a = 6.0 / (1+exp(-4.0*pow(x, 1.0))) - 3.0;
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
     }
     
     thisCar->setA(a);
@@ -305,31 +315,40 @@ void moveSelfCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LA
             buffer[lane] = thisCar;
         }
     }
-    road[lane][thisCar->getBlockPos()] = thisCar;
 }
 void moveHumanCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE], int lane, int blockPos) {
     Car *thisCar = road[lane][blockPos];
     Car *frontCar = thisCar->frontCar(road);
     Car *backCar = thisCar->backCar(road);
-    
-    double x = -0.1;
-    if (frontCar != NULL) {
-        x += COEF[0] * (frontCar->getPreV(REACTION_TIME-1) - thisCar->getV());
-        x += COEF[1] * (frontCar->getPreS(REACTION_TIME-1) - thisCar->getS());
+    double a;
+    if (frontCar == NULL) {
+        a = A_COEF[0] * (LANE_V_LIMIT[lane] - thisCar->getV());
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
+    } else if (frontCar->getS() - thisCar->getS() < SAFE_DIST) {
+        a = A_COEF[1] * (A_COEF[3] - (frontCar->getS() - thisCar->getS()));
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
+    } else if ((backCar != NULL) &&
+               (thisCar->getS() - backCar->getS() < SAFE_DIST)) {
+        a = A_COEF[2] * (A_COEF[3] - thisCar->getS() - backCar->getS());
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
+    } else {
+        double x = -0.1;
+        x += COEF[0] * (frontCar->getPreV(0) - thisCar->getV());
+        x += COEF[1] * (frontCar->getPreS(0) - thisCar->getS());
+        if (backCar != NULL) {
+            x += COEF[2] * (thisCar->getV() - backCar->getPreV(0));
+            x += COEF[3] * (thisCar->getS() - backCar->getPreS(0));
+        }
+        a = 6.0 / (1+exp(-4.0*pow(x, 1.0))) - 3.0;
+        a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
     }
-    if (backCar != NULL) {
-        x += COEF[2] * (thisCar->getPreV(REACTION_TIME-1) - backCar->getV());
-        x += COEF[3] * (thisCar->getPreS(REACTION_TIME-1) - backCar->getS());
-    }
-    double a = 6.0 / (1+exp(-4.0*pow(x, 1.0))) - 3.0;       //new acceleration
     
     thisCar->setA(a);
     thisCar->updVSBlockPos(road);
-    
+    road[lane][thisCar->getBlockPos()] = thisCar;
     if (thisCar->getS() > ROAD_LENGTH) {
         if (buffer[lane] != NULL) {
             for (int preTime = 0; preTime < REACTION_TIME; preTime++) {
-                
                 if ((road[lane][buffer[lane]->getPreBlockPos(preTime)] != NULL) &&
                     (road[lane][buffer[lane]->getPreBlockPos(preTime)]->getSerialNum()
                      == buffer[lane]->getSerialNum())) {
@@ -340,7 +359,6 @@ void moveHumanCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_L
             buffer[lane] = thisCar;
         }
     }
-    road[lane][thisCar->getBlockPos()] = thisCar;
 }
 
 void addCarInQueue() {
@@ -359,7 +377,7 @@ void addCarInQueue() {
     }
     int a = (int)queueHuman.size();
     int b = (int)queueSelf.size();
-//    printf("human size:%3d self size:%3d\n", a, b);
+    printf("human size:%3d self size:%3d\n", a, b);
 }
 
 void runDT(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE]) {
