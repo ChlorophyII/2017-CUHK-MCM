@@ -268,18 +268,38 @@ As for self-driving vehicles, since they can detect others' acceleration, if the
 %formula
 \subsection{Merging and Divergence}
 In reality, the number of lanes in a road is not constant,so sometimes vehicles need to merge into fewer lanes and sometimes diverge to more lanes. We assumed that
+\subsection{Dedicating Lanes for Self-driving Vehicles}
+The most significant difference between the self-driving vehicles and ordinary cars are reaction time and corporation between vehicles, which causes the self-driving cars running more smoothly. When the percentage of self-driving vehicles reaches some value, a special lane for self-driving vehicles could be dedicated in order to raise transportation efficient.
+
 \section{Calculating and Simplifying the Model}
 %theory of algorithm (figure)
-\section{Application of the Model}%apply to roads of interest
+A dynamic array is the foundation of the implementation, allowing multiple simulations on various percentage of  self-driving vehicles or various traffic volume. In order to simulate the structure of the model, firstly, a class $Car$ was  defined to store the information such as velocity, acceleration, serial Number etc. of a car, a dynamic array representing all positions cars may occupy was created, within which each
+\begin{figure}[!htp]
+\centering
+\includegraphics[height=11.1cm]{FlowChart1.jpg}
+\caption{Flow Chart}
+\end{figure}
 \section{Revise and Improve the Model}
+\subsection{Influence of merge and divergence}
+There are more than one lanes on highway, and number of lanes changes at joints, so the vehicles must merge or diverge at these joints. This process will effect the velocity and acceleration of vehicles, thus causing a noticeable influence on traffic flow. In order to take this effect into account, we designed the following algorithm:\\
+\subsection{Influence of cooperation between self-driving cars}
+The cooperation system of self-driving cars makes the motion status transparent among self-driving vehicles, which may influence the strategy while merging/diverging. By qualitative analysis, a conclusion could be drawn that the self-driving vehicles tend to gather as a whole,
+\section{Application of the Model}%apply to roads of interest
 \section{The Model Results}
-\subsection{}
+\subsection{Influence on Capacity of Percentage of self-driving vehicles}
+To implement the traffic flow of a 1000-meter straight highway which has 4 lanes, we assume that 1 lane is set for self-driving cars. We make a policy that self-driving cars can run on any lane, but human-driving cars are not allowed to run on self-driving lane. We assume that a car will be generated at origin every 2.5 seconds, firstly we set the percentage of self-driving car to be 30$\%$, the statistics showed that the motion status of the whole  road will become steady after around 14 seconds, that is, after 14 seconds, for any certain point on the road, the velocities of vehicles when they pass through the point will be almost the same, this status is as shown in figure:\\
+Then we adjust the percentage to 60$\%$, 90$\%$,the xxx are as shown:\\
+\\
+By statistics above, conclusion can be drawn that 
+\subsection{Influence of cooperation between self-driving cars}
+The self-driving cars own a cooperation system that can exchange information among each other, then we assume that .For %include figures:1.+Delta a, 2, no Delta a
+
 \section{Conclusions}
 \section{Evaluation of the Model}
 \subsection{Strengths}
 \begin{enumerate}
 \item In our model, the
-\end{enumerate}
+\end{enumerate} 
 \subsection{Weakness}
 \begin{enumerate}
 \item We set the reaction time to be constant, but actually the reaction time of each driver at different time may vary, which may lead to error.
