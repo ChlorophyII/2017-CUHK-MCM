@@ -15,20 +15,30 @@
 #include <thread>
 #include <cstdlib>
 #include <queue>
+#include <fstream>
+
+//Frequently used variables
+int NUM_LANE;
+int NUM_LANE_SELF;
+double LANE_V_LIMIT[5];// = { 31.29, 31.29, 26.82, 26.82, 26.82 };
+//Left ones possibly indicates the speed limit on self-driving car only lanes
+double AVG_CAR_PER_SEC;   //Average cars per second on the road
+double SELF_RATIO;     //# self-driving cars / # all the cars
+double SELF_INIT_V = 28;      //Initial velocity of self-driving cars
+double HUMN_INIT_V = 24;      //Initial velocity of humn-driving cars
+const bool CAR_WATERFALL = false;    //Animation
+const char PRINT_TYPE = 't';
+//'e' emoji, 't' type, 'a' acceleration, 'v' velocity, 's' position
 
 //Time
 const double DT = 0.1;
-const double END_TIME = 1000.0;
+const double END_TIME = 100.0;
 //Road
-const int NUM_LANE = 5;
-const int NUM_LANE_SELF = 2;
 const int ROAD_LENGTH = 1000;
 const int BLOCK_LENGTH = 5;
 const int NUM_BLOCKS_PER_LANE = ROAD_LENGTH / BLOCK_LENGTH;
-const double LANE_V_LIMIT[5] = { 31.29, 31.29, 26.82, 26.82, 26.82 };
 // In m/s. equivalent to 70 and 60 in mph.
 // Caution!!!Remember to change initial speed
-const double AVG_CAR_PER_SEC = 5;
 //Car setting
 const int OBSERVABLE_DIST_FORWARD = 100;
 const int OBSERVABLE_BLOCKS_FORWARD = OBSERVABLE_DIST_FORWARD / BLOCK_LENGTH + 1;
@@ -48,13 +58,8 @@ const int LANE_CHANGE_RESTRICT_BLOCK = LANE_CHANGE_RESTRICT_DIST / BLOCK_LENGTH;
 const double AA_COEF[3] = { 1.0, 0.4, 0.3};
 const double A_LIMIT = 5;
 const double A_VALVE = 0.5;
-const double SELF_RATIO = 0.66;
 const double DELTA_S_VALVE_FOR_LANE_CHANGING = 30;
-const double SELF_INIT_V = 28;
-const double HUMN_INIT_V = 24;
 //Print function
-const bool CAR_WATERFALL = true;
-const char PRINT_TYPE = 't'; //'e' emoji, 'a' acceleration, 'v' velocity, 's' position
 const double REFRESH_FREQ = 0.05; // s
 const int REFRESH_NANO_SEC = REFRESH_FREQ * 1000000000;
 const int START_BLOCK = 0;
@@ -76,7 +81,7 @@ private:
     int preBlockPos[REACTION_TIME];    //previous block
     int serialNum;
 public:
-    
+
     Car(char type, double a, double v, double s, int lane, int blockPos, int serialNum) {
         this->type = type;
         this->a = a;
@@ -261,6 +266,30 @@ Car *fronCarD(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, char typ
 Car *backCarD(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, char type, double s);
 
 int main() {
+    char *SL = getenv("SL");
+    char *SR = getenv("SR");
+    char *CR = getenv("CR");
+    char *NL = getenv("NL");
+    char *SVL = getenv("SVL");
+    char *HVL = getenv("HVL");
+    char *SIV = getenv("SIV");
+    char *HIV = getenv("HIV");
+
+    NUM_LANE = atoi(NL);
+    assert(NUM_LANE ==4);
+    NUM_LANE_SELF = atoi(SL);
+    for (int i = 0; i < NUM_LANE_SELF; i++) {
+        LANE_V_LIMIT[i] = atof(SVL);
+    }
+    for (int i = NUM_LANE_SELF; i < NUM_LANE; i++) {
+        LANE_V_LIMIT[i] = atof(HVL);
+    }
+    AVG_CAR_PER_SEC = atof(CR) / 10.0;
+    SELF_RATIO = atof(SR) / 100.0;
+    SELF_INIT_V = atof(SIV);
+    assert(SELF_INIT_V == 28.0);
+    HUMN_INIT_V = atof(HIV);
+
     srand((unsigned)clock());
     Car *road[NUM_LANE][NUM_BLOCKS_PER_LANE];
     for (int lane = 0; lane < NUM_LANE; lane++) {
@@ -272,15 +301,26 @@ int main() {
     for (int lane = 0; lane < NUM_LANE; lane++) {
         buffer[lane] = NULL;
     }
-    
-    std::clock_t start = clock();
+
+//    std::clock_t start = clock();
     for (; t < END_TIME; t += DT) {
         //        printf("t=%f\n", t);
         runDT(road, buffer);
     }
 //        printRoad(road, 't');
-    std::cout << (clock() - start) / (double)CLOCKS_PER_SEC << "s consumed\n";
-    printf("%d\n", SN);
+//    std::cout << (clock() - start) / (double)CLOCKS_PER_SEC << "s consumed\n";
+//    int a = (int)queueHumn.size();
+//    int b = (int)queueSelf.size();
+//    printf("humnQueue size:  %3d\nselfQueue size:  %3d\n", a, b);
+    //    printf("cars produced:   %d\n\n", SN);
+    using namespace std;
+    std::ofstream myfile;
+    myfile.open("result.csv",ios::out | ios::app );
+    // myfile <<"NUM_LANE, NUM_LANE_SELF, AVG_CAR_PER_SEC, SELF_RATIO, SELF_INIT_V, HUMN_INIT_V, queueSelf.size, queueHumn.size\n";
+    myfile <<  NUM_LANE << ", " << NUM_LANE_SELF << ", " << AVG_CAR_PER_SEC << ", ";
+    myfile <<  SELF_RATIO << ", " << SELF_INIT_V << ", " << HUMN_INIT_V << ", ";
+    myfile << (int)queueSelf.size() << ", " << (int)queueHumn.size() << "\n";
+   // printf("%d, %d, %f, %f, %f, %f, %d, %d\n", NUM_LANE, NUM_LANE_SELF, AVG_CAR_PER_SEC, SELF_RATIO, SELF_INIT_V, HUMN_INIT_V, (int)queueSelf.size(), (int)queueHumn.size());
     return 0;
 }
 
@@ -358,7 +398,7 @@ void moveSelfCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LA
     thisCar->updVSBlockPos(road);
     road[lane][thisCar->getBlockPos()] = thisCar;
     thisCar->setLane(lane);
-    
+
     if (thisCar->getS() > ROAD_LENGTH) {
         if (buffer[lane] != NULL) {
             for (int preTime = 0; preTime < REACTION_TIME; preTime++) {
@@ -389,7 +429,7 @@ void moveHumnCar(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LA
     thisCar->updVSBlockPos(road);
     road[lane][thisCar->getBlockPos()] = thisCar;
     thisCar->setLane(lane);
-    
+
     if (thisCar->getS() > ROAD_LENGTH) {
         if (buffer[lane] != NULL) {
             for (int preTime = 0; preTime < REACTION_TIME; preTime++) {
@@ -447,7 +487,7 @@ double humnCarAcc(Car *road[][NUM_BLOCKS_PER_LANE], Car *thisCar, int lane, int 
 //    }
 //    a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
 //    return a;
-    
+
 //**********************************************************//
     double a[3] = {0, 0, 0};
     double s_diff[2] = {0, 0}, v_diff[2] = {0, 0};
@@ -492,14 +532,14 @@ double selfCarAcc(Car *road[][NUM_BLOCKS_PER_LANE], Car *thisCar, int lane, int 
 //        }
 //        a = 6.0 / (1 + exp(-4.0*pow(x, 1.0))) - 3.0;
 //    }
-//    
+//
 //    if (fronCar != NULL){
 //        a = a + fronCar->getA() - fronCar->getPreA(0);
 //    }// add delta a
 //    a = std::max(std::min(a, A_LIMIT), -A_LIMIT);
-//    
+//
 //    return a ;
-//    
+//
     //**********************************************************//
     double a[3] = {0, 0, 0};
     double s_diff[2] = {0, 0}, v_diff[2] = {0, 0};
@@ -568,7 +608,7 @@ int humnLaneShift(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, doub
     else{
         return 0;
     }
-    
+
 }
 /*int humnLaneShift(Car *road[][NUM_BLOCKS_PER_LANE], int lane, int blockPos, double a[3]) {
 	if (canChangeToThisLane(road, lane - 1, blockPos)) {
@@ -650,8 +690,8 @@ void runDT(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE]) {
     //                road[lane][0] = newCar;
     //            }
     //    }
-    
-    
+
+
     //Set new car on the road
     //Self-driving car only lanes
     for (int lane = 0; lane < NUM_LANE_SELF; lane++) {
@@ -901,6 +941,6 @@ void printRoad(Car *road[][NUM_BLOCKS_PER_LANE], char parameter) {
             }
         }
             break;
-            
+
     }
 }
