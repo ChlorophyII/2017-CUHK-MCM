@@ -226,6 +226,8 @@ $\Delta$$v_{2}$ &m/s &Velocity of the objective car minus the velocity of the ba
 \hline
 $\Delta$$v_{3}$ &m/s &Speed limit minus the velocity of objective car\\
 \hline
+$SD$& m&Safety distance\\
+\hline
 $d_{1}$ &m &Distance between the front car and the objective car\\
 \hline
 $d_{2}$ &m &Distance between the objective car and the back car\\
@@ -253,13 +255,9 @@ $N_{2}$&/ & Total number of vehicles out of way in a fixed time period\\
 
 \section{Analysis of the Problem}
 \subsection{Basic model for motion}
-Firstly, in order to enlarge the traffic capacity, the behavior of each individual vehicle should be analyzed. To do that , the authors gave  initial velocities to vehicles and let the accelerations be  functions of some factors. For each ordinary vehicle(i.e., not self-driving), its instantaneous acceleration is positively correlated to $\Delta$$v_{1}$, $\Delta$$v_{3}$, and $d_{1}$, negatively correlated to $\Delta$$v_{2}$ and $d_{2}$ because the drivers tend to accelerate if the vehicles in the front is running fast or far away, and vice versa for the vehicles behind. Besides, if the velocity is lower than the speed limit, the vehicle tends to accelerate. For simplicity, when modeling acceleration, we introduced a variable x ranging from -1 to 1 which depends linearly on  $\Delta$$v_{1}$,  $d_{1}$, $\Delta$$v_{2}$ and $d_{2}$. By assigning reasonable values to these four independent values and fitting coefficients, we got the following formula:
+Firstly, in order to enlarge the traffic capacity, the behavior of each individual vehicle should be analyzed. To do that , the authors gave  initial velocities to vehicles and let the accelerations be  functions of some factors. For each ordinary vehicle(i.e., not self-driving), its instantaneous acceleration is positively correlated to $\Delta$$v_{1}$, $\Delta$$v_{3}$, and $d_{1}$, negatively correlated to $\Delta$$v_{2}$ and $d_{2}$ because the drivers tend to accelerate if the vehicles in the front is running fast or far away, and vice versa for the vehicles behind. Besides, if the velocity is lower than the speed limit, the vehicle tends to accelerate. To make the motion as even as possible as well as ensure safety, we made initial guess that the curve should be in shape "S". We adopted logarithm function. By assigning reasonable values to these independent values and fitting coefficients, we got the following formula:
 \begin{quotation}
- x = 0.0159(s/m)$\Delta$$v_{1}$ + 0.0010($m^{-1}$)$d_{1}$ - 0.0054(s/m)$\Delta$$v_{2}$ - 0.0004($m^{-1}$)$d_{2}$ + 0.0224(s/m)$\Delta$$v_{3}$ - 0.1000
-\end{quotation}
-Obviously, x is positively correlated to acceleration. However, a linear equation is not accurate enough to describe the relation. To make the motion as even as possible, we adopted an "S curve" and by fitting data, we got the following formula:\\
-\begin{quotation}
-$a_{o}$ = 3($\frac{2}{1 + e^{-4x}}$ - 1) %the unit is m/s^2
+$a$ = $\lambda_{1}$($log$($d_{1}$/$SD$) - $log$($d_{2}$/$SD$)) + $\lambda_{2}$($v_{1}$ - $v_{2}$) + $\lambda_{3}$$v_{3}$ %the unit is m/s^2
 \end{quotation}
 The figure of this function is as follow:\\
 \begin{figure}[!htp]
