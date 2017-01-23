@@ -1,3 +1,7 @@
+cd D://
+cd MCM2016/
+cd matlabCode/
+%change the current directory.
 
 FILENAME='result-3.csv';
 SELF_RATIO=[0:0.02:0.98];
@@ -5,11 +9,11 @@ AVG_CAR_PER_SEC=[1:0.2:4.8];
 PER_PLOT_DATA_VOLUME=length(SELF_RATIO)*length(AVG_CAR_PER_SEC);
 %constants
 
-firstRowInfo=csvread(FILENAME,0,0,[0,0,0,7]);
+firstRowInfo=csvread(FILENAME,,0,[0,0,0,7]);
 LANE_NUM=firstRowInfo(1);
 %get the first row info.To set lane information
 
-dataMatrix=csvread(FILENAME);
+dataMatrix=csvread(FILENAME,1,0);
 dataMatrixSize=size(dataMatrix);
 dataMatrixHeight=dataMatrixSize(1);
 rowNumOfPlot=dataMatrixHeight/PER_PLOT_DATA_VOLUME;
@@ -88,6 +92,62 @@ end
 
 
 
+
+%%trial code:
+%Following is for single plot(total)
+figure();
+vec=dataMatrix(1:PER_PLOT_DATA_VOLUME,8)+dataMatrix(1:PER_PLOT_DATA_VOLUME,7);
+plotMatrix=vec2mat(vec,length(AVG_CAR_PER_SEC));
+x=SELF_RATIO;
+y=AVG_CAR_PER_SEC;
+[X,Y]=meshgrid(x,y);
+Z=plotMatrix';
+map=[1,0,0;0,1,0];
+handle=surf(X,Y,Z);
+xlabel('SELF\_RATIO');
+ylabel('AVG\_CAR\_PER\_SEC');
+zlabel('queueSize');
+title('........%i',1);
+saveas(handle,'FIrstplot.jpg');
+
+
+
+handle1=figure();
+%Following template is for seperated plotting
+vec=dataMatrix(PER_PLOT_DATA_VOLUME+1:2*PER_PLOT_DATA_VOLUME,8);
+plotMatrix=vec2mat(vec,length(AVG_CAR_PER_SEC));
+x=SELF_RATIO;
+y=AVG_CAR_PER_SEC;
+[X,Y]=meshgrid(x,y);
+Z1=plotMatrix';
+s=size(Z1);
+c=ones(s);
+map=[1,0,0;0,1,0];
+surf(X,Y,Z1,c);
+xlabel('SELF\_RATIO');
+ylabel('AVG\_CAR\_PER\_SEC');
+zlabel('queueSize');
+
+
+hold on;
+
+vec=dataMatrix(PER_PLOT_DATA_VOLUME+1:2*PER_PLOT_DATA_VOLUME,7);
+plotMatrix=vec2mat(vec,length(AVG_CAR_PER_SEC));
+x=SELF_RATIO;
+y=AVG_CAR_PER_SEC;
+[X,Y]=meshgrid(x,y);
+Z2=plotMatrix';
+s=size(Z2);
+c=2*ones(s);
+map=[1,0,0;0,1,0];
+surf(X,Y,Z2,c);
+xlabel('SELF\_RATIO');
+ylabel('AVG\_CAR\_PER\_SEC');
+zlabel('queueSize');
+colormap(map);
+alpha(0.8);
+title('.......');
+saveas(handle1,'secondPlot.jpg');
 
 
 
