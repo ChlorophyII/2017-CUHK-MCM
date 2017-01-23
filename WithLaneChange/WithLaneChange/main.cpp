@@ -55,7 +55,7 @@ const int LANE_CHANGE_RESTRICT_DIST = 50;
 const int LANE_CHANGE_RESTRICT_BLOCK = LANE_CHANGE_RESTRICT_DIST / BLOCK_LENGTH;
 //const double COEF[5] = { 0.0159, 0.0010, -0.005736, -0.0004, 0.0224 };
 //const double A_COEF[4] = { 0.19, -0.15, -0.12, 70 };
-const double AA_COEF[3] = { 1.0, 0.4, 0.3};
+const double AA_COEF[4] = { 1.0, 0.4, 0.3, 0.3};
 const double A_LIMIT = 5;
 const double A_VALVE = 0.5;
 const double DELTA_S_VALVE_FOR_LANE_CHANGING = 30;
@@ -541,22 +541,26 @@ double selfCarAcc(Car *road[][NUM_BLOCKS_PER_LANE], Car *thisCar, int lane, int 
 //    return a ;
 //
     //**********************************************************//
-    double a[3] = {0, 0, 0};
-    double s_diff[2] = {0, 0}, v_diff[2] = {0, 0};
+    double a[4] = {0, 0, 0, 0};
+    double s_diff[2] = {0, 0}, v_diff[2] = {0, 0}, a_diff[2] = {0,0};
     if (fronCar != NULL) {
         s_diff[0] = fronCar->getPreS(0) - thisCar->getS();
         v_diff[0] = fronCar->getPreV(0) - thisCar->getV();
+        a_diff[0] = fronCar->getPreA(0) - thisCar->getA();
         a[0] += AA_COEF[0] * log(s_diff[0]/SAFE_DIST);
         a[1] += AA_COEF[1] * v_diff[0];
+        a[3] += AA_COEF[3] * a_diff[0];
     }
     if (backCar != NULL) {
         s_diff[1] = thisCar->getS() - backCar->getPreS(0);
         v_diff[1] = thisCar->getV() - backCar->getPreV(0);
+        a_diff[1] = thisCar->getA() - backCar->getPreA(0);
         a[0] += AA_COEF[0] * log(s_diff[1]/SAFE_DIST);
         a[1] += AA_COEF[1] * v_diff[1];
+        a[3] += AA_COEF[3] * a_diff[1];
     }
     a[2] = AA_COEF[2] * (LANE_V_LIMIT[lane] - thisCar->getV());
-    double acceleration = a[0] + a[1] + a[2];
+    double acceleration = a[0] + a[1] + a[2] + a[3];
     acceleration = std::max(std::min(acceleration, A_LIMIT), -A_LIMIT);
     return acceleration;
 }
