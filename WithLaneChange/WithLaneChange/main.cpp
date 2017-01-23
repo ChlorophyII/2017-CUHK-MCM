@@ -48,13 +48,13 @@ const int LANE_CHANGE_RESTRICT_BLOCK = LANE_CHANGE_RESTRICT_DIST / BLOCK_LENGTH;
 const double AA_COEF[3] = { 1.0, 0.4, 0.3};
 const double A_LIMIT = 5;
 const double A_VALVE = 0.5;
-const double SELF_RATIO = 0.59;
+const double SELF_RATIO = 0.66;
 const double DELTA_S_VALVE_FOR_LANE_CHANGING = 30;
 const double SELF_INIT_V = 28;
 const double HUMN_INIT_V = 24;
 //Print function
 const bool CAR_WATERFALL = true;
-const char PRINT_TYPE = 'e'; //'e' emoji, 'a' acceleration, 'v' velocity, 's' position
+const char PRINT_TYPE = 't'; //'e' emoji, 'a' acceleration, 'v' velocity, 's' position
 const double REFRESH_FREQ = 0.05; // s
 const int REFRESH_NANO_SEC = REFRESH_FREQ * 1000000000;
 const int START_BLOCK = 0;
@@ -701,15 +701,15 @@ void runDT(Car *road[][NUM_BLOCKS_PER_LANE], Car *buffer[NUM_BLOCKS_PER_LANE]) {
                 else {
                     Car *selfCar, *humnCar;
                     selfCar = queueSelf.front();
-                    queueSelf.pop();
                     humnCar = queueHumn.front();
-                    queueHumn.pop();
                     if (selfCar->getSerialNum() < humnCar->getSerialNum()) {
                         selfCar->setLaneAll(lane);
+                        queueSelf.pop();
                         road[lane][0] = selfCar;
                     }
                     else {
                         humnCar->setLaneAll(lane);
+                        queueHumn.pop();
                         road[lane][0] = humnCar;
                     }
                 }
