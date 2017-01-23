@@ -210,7 +210,7 @@ In this article, the authors decomposed the problem into the following steps whe
 \hline
 Symbol &Units &Meaning\\
 \hline
-$Vol$ & &Average traffic volume\\
+$Vol$ & ? &Average traffic volume\\
 \hline
 $P$ & /&Percentage of self-driving cars\\
 \hline
@@ -235,6 +235,10 @@ $x$ & /&\tabincell{c}{A coefficient ranges from -1 to 1 representing the influen
 $Num$ &/ &Number of lanes\\
 \hline
 $\Delta t$ &s &Reaction time of driver\\
+\hline
+$N_{1}$&/ & Total number of vehicles generated in a fixed time period\\
+\hline
+$N_{2}$&/ & Total number of vehicles out of way in a fixed time period\\
 \hline
 \caption{Notations}
 
@@ -285,9 +289,10 @@ There are more than one lanes on highway, and number of lanes changes at joints,
 \subsection{Influence of cooperation between self-driving cars}
 The cooperation system of self-driving cars makes the motion status transparent among self-driving vehicles, which may influence the strategy while merging/diverging. By qualitative analysis, a conclusion could be drawn that the self-driving vehicles tend to gather as a whole,
 \section{Application of the Model}%apply to roads of interest
+We input the data provided in the excel to our program, 
 \section{The Model Results}
 \subsection{Influence on Capacity of Percentage of self-driving vehicles}
-To implement the traffic flow of a 1000-meter straight highway which has 4 lanes, we assume that 1 lane is set for self-driving cars. We make a policy that self-driving cars can run on any lane, but human-driving cars are not allowed to run on self-driving lane. We assume that a car will be generated at origin every 2.5 seconds, firstly we set the percentage of self-driving car to be 30$\%$, the statistics showed that the motion status of the whole  road will become steady after around 14 seconds, that is, after 14 seconds, for any certain point on the road, the velocities of vehicles when they pass through the point will be almost the same, this status is as shown in figure:\\
+To implement the traffic flow of a 1000-meter straight highway which has 5 lanes, we assume that 1 lane is set for self-driving cars. We make a policy that self-driving cars can run on any lane, but human-driving cars are not allowed to run on self-driving lane. We assume that a car will be generated at origin every 2.5 seconds, firstly we set the percentage of self-driving car to be 20$\%$, we use $\Delta N$ = $N_{1}$ - $N_{2}$ to measure the capacity of our model in 1000 seconds.%the statistics showed that the motion status of the whole  road will become steady after around 14 seconds, that is, after 14 seconds, for any certain point on the road, the velocities of vehicles when they pass through the point will be almost the same, this status is as shown in figure:\\
 Then we adjust the percentage to 60$\%$, 90$\%$,the xxx are as shown:\\
 \\
 By statistics above, conclusion can be drawn that 
@@ -298,7 +303,7 @@ The self-driving cars own a cooperation system that can exchange information amo
 \section{Evaluation of the Model}
 \subsection{Strengths}
 \begin{enumerate}
-\item In our model, the
+\item 
 \end{enumerate} 
 \subsection{Weakness}
 \begin{enumerate}
